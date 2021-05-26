@@ -62,7 +62,7 @@ class TestScan(unittest.TestCase):
             ]
         }
         sns_event = {"Records": [{"Sns": {"Message": json.dumps(event)}}]}
-        s3_obj = event_object(sns_event, event_source="sns")
+        s3_obj = event_object(sns_event, event_source="aws:sns")
         expected_s3_object = self.s3.Object(self.s3_bucket_name, self.s3_key_name)
         self.assertEquals(s3_obj, expected_s3_object)
 
