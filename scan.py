@@ -19,7 +19,8 @@ import copy
 import json
 import metrics
 import os
-from urllib.parse import unquote_plus
+
+# from urllib.parse import unquote_plus
 from distutils.util import strtobool
 
 from common import AV_DEFINITION_S3_BUCKET
@@ -44,41 +45,17 @@ from common import create_dir
 from common import get_timestamp
 
 
-def event_object(event, event_source="s3"):
-
-    # SNS events are slightly different
-    if event_source.upper() == "AWS:SNS":
-        event = json.loads(event["Records"][0]["Sns"]["Message"])
-    print("event_object event: %s" % event)
-    # Break down the record
-    records = event["Records"]
-    if len(records) == 0:
-        raise Exception("No records found in event!")
-    record = records[0]
-    print("event_object record: %s" % record)
-
-    s3_obj = record["s3"]
-
-    # Get the bucket name
-    if "bucket" not in s3_obj:
-        raise Exception("No bucket found in event!")
-    bucket_name = s3_obj["bucket"].get("name", None)
-
-    # Get the key name
-    if "object" not in s3_obj:
-        raise Exception("No key found in event!")
-    key_name = s3_obj["object"].get("key", None)
-
-    if key_name:
-        key_name = unquote_plus(key_name)
-
-    # Ensure both bucket and key exist
-    if (not bucket_name) or (not key_name):
-        raise Exception("Unable to retrieve object from event.\n{}".format(event))
-
-    # Create and return the object
-    s3 = boto3.resource("s3")
-    return s3.Object(bucket_name, key_name)
+def event_object(event, s3_resource=None):
+    bucket = json.loads(event["Records"][0]["Sns"]["Message"])["Records"][0]["s3"][
+        "bucket"
+    ]["name"]
+    key = json.loads(event["Records"][0]["Sns"]["Message"])["Records"][0]["s3"][
+        "object"
+    ]["key"]
+    if (not bucket) or (not key):
+        print("Unable to retrieve object from event.\n%s" % event)
+        raise Exception("Unable to retrieve object from event.")
+    return s3_resource.Object(bucket, key)
 
 
 def verify_s3_object_version(s3, s3_object):
@@ -290,12 +267,11 @@ def lambda_handler(event, context):
 
     # Get some environment variables
     ENV = os.getenv("ENV", "")
-    EVENT_SOURCE = os.getenv("EVENT_SOURCE", "S3")
 
     start_time = get_timestamp()
     print("Script starting at %s\n" % (start_time))
     print("Event received: %s" % event)
-    s3_object = event_object(event, event_source=EVENT_SOURCE)
+    s3_object = event_object(event, s3_resource=s3)
 
     if str_to_bool(AV_PROCESS_ORIGINAL_VERSION_ONLY):
         verify_s3_object_version(s3, s3_object)
