@@ -33,16 +33,13 @@ clean:  ## Clean build artifacts
 	find ./ -type f -name '*.pyc' -delete
 
 .PHONY: archive
-archive: clean  ## Create the archive for AWS lambda
+archive: ## Create the archive for AWS lambda
 	docker build -t bucket-antivirus-function:latest .
 	mkdir -p ./build/
 	docker run -v $(current_dir)/build:/opt/mount --rm --entrypoint cp bucket-antivirus-function:latest /opt/app/build/lambda.zip /opt/mount/lambda.zip
 
-.PHONY: package  ## GitHub Action build process for deployment
-package:
-	docker build -t bucket-antivirus-function:latest .
-	mkdir -p ./build/
-	docker run -v $(current_dir)/build:/opt/mount --rm --entrypoint cp bucket-antivirus-function:latest /opt/app/build/lambda.zip /opt/mount/lambda.zip
+.PHONY: clean_archive  ## Clean build artifacts and create the archive for AWS Lambda
+clean_archive: clean archive
 
 .PHONY: pre_commit_install  ## Ensure that pre-commit hook is installed and kept up to date
 pre_commit_install: .git/hooks/pre-commit ## Ensure pre-commit is installed
