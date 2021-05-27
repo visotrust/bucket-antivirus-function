@@ -248,6 +248,7 @@ def sns_delete_results(s3_object, result):
 
 def lambda_handler(event, context):
     if AV_SCAN_ROLE_ARN:
+        print("IAM Role ARN Provided: %s" % (AV_SCAN_ROLE_ARN))
         sts_client = boto3.client("sts")
         sts_response = sts_client.assume_role(
             RoleArn=AV_SCAN_ROLE_ARN, RoleSessionName="AVScanRoleAssumption"
@@ -261,6 +262,7 @@ def lambda_handler(event, context):
         s3_client = session.client("s3")
         sns_client = session.client("sns")
     else:
+        print("No IAM Role provided")
         s3 = boto3.resource("s3")
         s3_client = boto3.client("s3")
         sns_client = boto3.client("sns")
@@ -271,6 +273,9 @@ def lambda_handler(event, context):
     start_time = get_timestamp()
     print("Script starting at %s\n" % (start_time))
     print("Event received: %s" % event)
+    print("S3 Resource: %s" % (s3))
+    print("S3 Client: %s" % (s3_client))
+    print("SNS Client: %s" % (sns_client))
     s3_object = event_object(event, s3_resource=s3)
 
     if str_to_bool(AV_PROCESS_ORIGINAL_VERSION_ONLY):
