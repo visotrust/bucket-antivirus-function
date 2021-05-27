@@ -349,7 +349,6 @@ class TestScan(unittest.TestCase):
         s3_stubber_resource = Stubber(self.s3.meta.client)
 
         status_sns_arn = "some_status_arn"
-        clean_sns_arn = "some_clean_arn"
         version_id = "version-id"
         scan_result = "CLEAN"
         scan_signature = AV_SIGNATURE_OK
@@ -376,19 +375,6 @@ class TestScan(unittest.TestCase):
             "publish", publish_response, publish_expected_status_params
         )
 
-        publish_expected_clean_params = {
-            "TargetArn": clean_sns_arn,
-            "Message": json.dumps({"default": json.dumps(message)}),
-            "MessageAttributes": {
-                "av-status": {"DataType": "String", "StringValue": scan_result},
-                "av-signature": {"DataType": "String", "StringValue": scan_signature},
-            },
-            "MessageStructure": "json",
-        }
-        sns_stubber.add_response(
-            "publish", publish_response, publish_expected_clean_params
-        )
-
         head_object_response = {"VersionId": version_id}
         head_object_expected_params = {
             "Bucket": self.s3_bucket_name,
@@ -403,7 +389,6 @@ class TestScan(unittest.TestCase):
                 self.sns_client,
                 s3_obj,
                 status_sns_arn,
-                clean_sns_arn,
                 scan_result,
                 scan_signature,
                 timestamp,
