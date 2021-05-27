@@ -6,7 +6,7 @@ echo "deploying lambda function to branch: ${GITHUB_REF}"
 
 echo "deploying to aws account infra"
 
-make package
+make archive
 
 unset  AWS_SESSION_TOKEN
 

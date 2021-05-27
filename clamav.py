@@ -158,8 +158,8 @@ def md5_from_s3_tags(s3_client, bucket, key):
         }
         if e.response["Error"]["Code"] in expected_errors:
             print(
-                "Returning empty string, error response code from GetTag: %s"
-                % e.response["Error"]["Code"]
+                "Returning empty string, error response code from GetTag on %s/%s: %s"
+                % (bucket, key, e.response["Error"]["Code"])
             )
             return ""
         else:
@@ -175,15 +175,11 @@ def time_from_s3(s3_client, bucket, key):
     try:
         time = s3_client.head_object(Bucket=bucket, Key=key)["LastModified"]
     except botocore.exceptions.ClientError as e:
-        print(
-            "Client error occurred with calling HeadObject: %s"
-            % (e.response["Error"]["Code"])
-        )
         expected_errors = {"404", "403", "AccessDenied", "NoSuchKey"}
         if e.response["Error"]["Code"] in expected_errors:
             print(
-                "Returning current datetime, error response code from HeadObject: %s"
-                % e.response["Error"]["Code"]
+                "Returning current datetime, error response code from HeadObject on %s/%s: %s"
+                % (bucket, key, e.response["Error"]["Code"])
             )
             return datetime.datetime.fromtimestamp(0, utc)
         else:
