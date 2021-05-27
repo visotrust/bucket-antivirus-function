@@ -39,7 +39,7 @@ archive: clean  ## Create the archive for AWS lambda
 	docker run -v $(current_dir)/build:/opt/mount --rm --entrypoint cp bucket-antivirus-function:latest /opt/app/build/lambda.zip /opt/mount/lambda.zip
 
 .PHONY: package  ## GitHub Action build process for deployment
-archive: docker build -t bucket-antivirus-function:latest .
+package: docker build -t bucket-antivirus-function:latest .
 	mkdir -p ./build/
 	docker run -v $(current_dir)/build:/opt/mount --rm --entrypoint cp bucket-antivirus-function:latest /opt/app/build/lambda.zip /opt/mount/lambda.zip
 
