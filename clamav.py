@@ -151,7 +151,7 @@ def md5_from_s3_tags(s3_client, bucket, key):
     except botocore.exceptions.ClientError as e:
         expected_errors = {
             "404",  # Object does not exist
-            "Forbidden",
+            "403",
             "AccessDenied",  # Object cannot be accessed
             "NoSuchKey",  # Object does not exist
             "MethodNotAllowed",  # Object deleted in bucket with versioning
@@ -175,9 +175,16 @@ def time_from_s3(s3_client, bucket, key):
     try:
         time = s3_client.head_object(Bucket=bucket, Key=key)["LastModified"]
     except botocore.exceptions.ClientError as e:
-        print("Client error occurred with calling HeadObject: %s" % (e))
-        expected_errors = {"404", "Forbidden", "AccessDenied", "NoSuchKey"}
+        print(
+            "Client error occurred with calling HeadObject: %s"
+            % (e.response["Error"]["Code"])
+        )
+        expected_errors = {"404", "403", "AccessDenied", "NoSuchKey"}
         if e.response["Error"]["Code"] in expected_errors:
+            print(
+                "Returning current datetime, error response code from HeadObject: %s"
+                % e.response["Error"]["Code"]
+            )
             return datetime.datetime.fromtimestamp(0, utc)
         else:
             raise
