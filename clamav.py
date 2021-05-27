@@ -38,7 +38,6 @@ from common import FRESHCLAM_PATH
 from common import create_dir
 
 RE_SEARCH_DIR = r"SEARCH_DIR\(\"=([A-z0-9\/\-_]*)\"\)"
-s3_new_client = boto3.client("s3")
 
 
 def current_library_search_path():
@@ -148,7 +147,7 @@ def md5_from_file(filename):
 
 def md5_from_s3_tags(s3_client, bucket, key):
     try:
-        tags = s3_new_client.get_object_tagging(Bucket=bucket, Key=key)["TagSet"]
+        tags = s3_client.get_object_tagging(Bucket=bucket, Key=key)["TagSet"]
     except botocore.exceptions.ClientError as e:
         expected_errors = {
             "404",  # Object does not exist
@@ -174,7 +173,7 @@ def md5_from_s3_tags(s3_client, bucket, key):
 
 def time_from_s3(s3_client, bucket, key):
     try:
-        time = s3_new_client.head_object(Bucket=bucket, Key=key)["LastModified"]
+        time = s3_client.head_object(Bucket=bucket, Key=key)["LastModified"]
     except botocore.exceptions.ClientError as e:
         expected_errors = {"404", "403", "AccessDenied", "NoSuchKey"}
         if e.response["Error"]["Code"] in expected_errors:
