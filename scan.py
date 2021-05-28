@@ -20,7 +20,7 @@ import json
 import metrics
 import os
 
-# from urllib.parse import unquote_plus
+from urllib.parse import unquote_plus
 from distutils.util import strtobool
 
 from common import AV_DEFINITION_S3_BUCKET
@@ -49,9 +49,11 @@ def event_object(event, s3_resource=None):
     bucket = json.loads(event["Records"][0]["Sns"]["Message"])["Records"][0]["s3"][
         "bucket"
     ]["name"]
-    key = json.loads(event["Records"][0]["Sns"]["Message"])["Records"][0]["s3"][
-        "object"
-    ]["key"]
+    key = unquote_plus(
+        json.loads(event["Records"][0]["Sns"]["Message"])["Records"][0]["s3"]["object"][
+            "key"
+        ]
+    )
     if (not bucket) or (not key):
         print("Unable to retrieve object from event.\n%s" % event)
         raise Exception("Unable to retrieve object from event.")
