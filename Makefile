@@ -54,7 +54,7 @@ pre_commit_tests: ## Run pre-commit tests
 
 .PHONY: test
 test: clean  ## Run python tests
-	nosetests
+	python3 -m unittest discover ./ -p "*_test.py"
 
 .PHONY: coverage
 coverage: clean  ## Run python tests with coverage
