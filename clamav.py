@@ -207,7 +207,7 @@ def scan_file(path):
         stdout=subprocess.PIPE,
         env=av_env,
     )
-    output = av_proc.communicate()[0].decode()
+    output = av_proc.communicate()[0].decode("utf-8", errors="ignore")
     print("clamscan output:\n%s" % output)
 
     # Turn the output into a data source we can read
