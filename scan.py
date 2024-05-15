@@ -328,8 +328,11 @@ def lambda_handler(event, context):
 
         # Publish clean scan results cross account
         if (
-            scan_result == AV_STATUS_CLEAN
-            and str_to_bool(AV_STATUS_SNS_PUBLISH_CLEAN)
+            (
+                (scan_result == AV_STATUS_CLEAN and str_to_bool(AV_STATUS_SNS_PUBLISH_CLEAN))
+                or 
+                (scan_result == AV_STATUS_INFECTED and str_to_bool(AV_STATUS_SNS_PUBLISH_INFECTED))
+            )
             and AV_STATUS_CLEAN_SNS_ARN not in [None, ""]
         ):
             sns_scan_results(
