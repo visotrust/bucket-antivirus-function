@@ -258,8 +258,8 @@ def lambda_handler(event, context):
     if (
         "Records" in event and 
         len(event["Records"]) > 0 and 
-        "EventSource" in event["Records"][0] and 
-        event["Records"][0]["EventSource"] == "aws:sqs"
+        "eventSource" in event["Records"][0] and 
+        event["Records"][0]["eventSource"] == "aws:sqs"
     ):
         print("Received event was from SQS queue, exiting without taking action.")
         return
