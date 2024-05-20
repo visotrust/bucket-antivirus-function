@@ -255,11 +255,9 @@ def lambda_handler(event, context):
     print("Script starting at %s\n" % (start_time))
     print("Event received: %s" % event)
 
-    if "Records" in event:
-        if len(event["Records"]) > 0:
-            if event["Records"][0]["eventSource"] == "aws:sqs":
-                print("Received event was from SQS queue, exiting without taking action.")
-                return
+    if "Records" in event and len(event["Records"]) > 0 and event["Records"][0]["eventSource"] == "aws:sqs":
+        print("Received event was from SQS queue, exiting without taking action.")
+        return
 
     s3_object = event_object(event, s3_resource=s3_cross_account)
 
