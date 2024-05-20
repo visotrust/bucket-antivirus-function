@@ -46,17 +46,13 @@ from common import get_timestamp
 
 
 def event_object(event, s3_resource=None):
-    bucket = json.loads(event["Records"][0]["Sns"]["Message"])["Records"][0]["s3"][
-        "bucket"
-    ]["name"]
-    key = unquote_plus(
-        json.loads(event["Records"][0]["Sns"]["Message"])["Records"][0]["s3"]["object"][
-            "key"
-        ]
-    )
+    bucket = json.loads(event["Records"][0]["Sns"]["Message"])["Records"][0]["s3"]["bucket"]["name"]
+    key = unquote_plus(json.loads(event["Records"][0]["Sns"]["Message"])["Records"][0]["s3"]["object"]["key"])
+
     if (not bucket) or (not key):
         print("Unable to retrieve object from event.\n%s" % event)
         raise Exception("Unable to retrieve object from event.")
+    
     return s3_resource.Object(bucket, key)
 
 
@@ -258,6 +254,13 @@ def lambda_handler(event, context):
     start_time = get_timestamp()
     print("Script starting at %s\n" % (start_time))
     print("Event received: %s" % event)
+
+    if "Records" in event:
+        if len(event["Records"]) > 0:
+            if event["Records"][0]["eventSource"] == "aws:sqs":
+                print("Received event was from SQS queue, exiting without taking action.")
+                return
+
     s3_object = event_object(event, s3_resource=s3_cross_account)
 
     if str_to_bool(AV_PROCESS_ORIGINAL_VERSION_ONLY):
