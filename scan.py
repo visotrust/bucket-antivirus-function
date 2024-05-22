@@ -46,9 +46,6 @@ from common import get_timestamp
 
 
 def event_object(event, s3_resource=None):
-    bucket = None
-    key = None
-
     # check that the event is properly formatted
     if "Records" in event and len(event["Records"]) > 0:
         # handle sns messages
@@ -59,6 +56,9 @@ def event_object(event, s3_resource=None):
             bucket = payload["Records"][0]["s3"]["bucket"]["name"]
             key = unquote_plus(payload["Records"][0]["s3"]["object"]["key"])
 
+            print(f"Received message to scan s3://{bucket}/{key}")
+            return s3_resource.Object(bucket, key)
+
         # handle SQS messages
         elif "eventSource" in event["Records"][0] and event["Records"][0]["eventSource"] == "aws:sqs":
             print("Handling SQS message")
@@ -67,13 +67,11 @@ def event_object(event, s3_resource=None):
             bucket = payload["data"]["s3Bucket"]
             key = unquote_plus(payload["data"]["s3Key"])
 
-    if not bucket or not key:
-        print("Unable to retrieve object from event.\n%s" % event)
-        raise Exception("Unable to retrieve object from event.")
-    
-    print(f"Received message to scan s3://{bucket}/{key}")
-    
-    return s3_resource.Object(bucket, key)
+            print(f"Received message to scan s3://{bucket}/{key}")
+            return s3_resource.Object(bucket, key)
+
+    print("Unable to retrieve object from event.\n%s" % event)
+    raise Exception("Unable to retrieve object from event.")
 
 
 def verify_s3_object_version(s3, s3_object):
