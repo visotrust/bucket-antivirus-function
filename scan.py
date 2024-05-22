@@ -46,6 +46,9 @@ from common import get_timestamp
 
 
 def event_object(event, s3_resource=None):
+    bucket = None
+    key = None
+    
     # check that the event is properly formatted
     if "Records" in event and len(event["Records"]) > 0:
         # handle sns messages
