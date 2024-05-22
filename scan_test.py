@@ -57,7 +57,7 @@ class TestScan(unittest.TestCase):
                 "s3Key" : self.s3_key_name,
             }
         }
-        sns_event = {
+        sqs_event = {
             "Records": [
                 {
                     "eventSource": "aws:sqs",
@@ -65,7 +65,7 @@ class TestScan(unittest.TestCase):
                 }
             ]
         }
-        s3_obj = event_object(sns_event, self.s3)
+        s3_obj = event_object(sqs_event, self.s3)
         expected_s3_object = self.s3.Object(self.s3_bucket_name, self.s3_key_name)
         self.assertEquals(s3_obj, expected_s3_object)
 
