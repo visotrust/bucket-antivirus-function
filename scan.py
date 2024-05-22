@@ -48,7 +48,7 @@ from common import get_timestamp
 def event_object(event, s3_resource=None):
     bucket = None
     key = None
-    
+
     # check that the event is properly formatted
     if "Records" in event and len(event["Records"]) > 0:
         # handle sns messages
@@ -67,7 +67,7 @@ def event_object(event, s3_resource=None):
             bucket = payload["data"]["s3Bucket"]
             key = unquote_plus(payload["data"]["s3Key"])
 
-    if (not bucket) or (not key):
+    if (bucket is None) or (key is None):
         print("Unable to retrieve object from event.\n%s" % event)
         raise Exception("Unable to retrieve object from event.")
     
