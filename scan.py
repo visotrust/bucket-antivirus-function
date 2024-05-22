@@ -67,7 +67,7 @@ def event_object(event, s3_resource=None):
             bucket = payload["data"]["s3Bucket"]
             key = unquote_plus(payload["data"]["s3Key"])
 
-    if bucket is None or key is None:
+    if not bucket or not key:
         print("Unable to retrieve object from event.\n%s" % event)
         raise Exception("Unable to retrieve object from event.")
     
