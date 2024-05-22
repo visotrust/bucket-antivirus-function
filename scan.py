@@ -46,14 +46,28 @@ from common import get_timestamp
 
 
 def event_object(event, s3_resource=None):
-    bucket = json.loads(event["Records"][0]["Sns"]["Message"])["Records"][0]["s3"]["bucket"]["name"]
-    key = unquote_plus(json.loads(event["Records"][0]["Sns"]["Message"])["Records"][0]["s3"]["object"]["key"])
+    # check that the event is properly formatted
+    if "Records" in event and len(event["Records"]) > 0:
+        # handle sns messages
+        if "EventSource" in event["Records"][0] and event["Records"][0]["EventSource"] == "aws:sns":
+            payload = json.loads(event["Records"][0]["Sns"]["Message"])
+            bucket = payload["Records"][0]["s3"]["bucket"]["name"]
+            key = unquote_plus(payload["Records"][0]["s3"]["object"]["key"])
 
-    if (not bucket) or (not key):
-        print("Unable to retrieve object from event.\n%s" % event)
-        raise Exception("Unable to retrieve object from event.")
-    
-    return s3_resource.Object(bucket, key)
+            print(f"Received SNS message to scan s3://{bucket}/{key}")
+            return s3_resource.Object(bucket, key)
+
+        # handle SQS messages
+        elif "eventSource" in event["Records"][0] and event["Records"][0]["eventSource"] == "aws:sqs":
+            payload = json.loads(event["Records"][0]["body"])
+            bucket = payload["data"]["s3Bucket"]
+            key = unquote_plus(payload["data"]["s3Key"])
+
+            print(f"Received SQS message to scan s3://{bucket}/{key}")
+            return s3_resource.Object(bucket, key)
+
+    print("Unable to retrieve object from event.\n%s" % event)
+    raise Exception("Unable to retrieve object from event.")
 
 
 def verify_s3_object_version(s3, s3_object):
@@ -254,15 +268,6 @@ def lambda_handler(event, context):
     start_time = get_timestamp()
     print("Script starting at %s\n" % (start_time))
     print("Event received: %s" % event)
-
-    if (
-        "Records" in event and 
-        len(event["Records"]) > 0 and 
-        "eventSource" in event["Records"][0] and 
-        event["Records"][0]["eventSource"] == "aws:sqs"
-    ):
-        print("Received event was from SQS queue, exiting without taking action.")
-        return
 
     s3_object = event_object(event, s3_resource=s3_cross_account)
 
