@@ -50,24 +50,20 @@ def event_object(event, s3_resource=None):
     if "Records" in event and len(event["Records"]) > 0:
         # handle sns messages
         if "EventSource" in event["Records"][0] and event["Records"][0]["EventSource"] == "aws:sns":
-            print("Handling SNS message")
-            
             payload = json.loads(event["Records"][0]["Sns"]["Message"])
             bucket = payload["Records"][0]["s3"]["bucket"]["name"]
             key = unquote_plus(payload["Records"][0]["s3"]["object"]["key"])
 
-            print(f"Received message to scan s3://{bucket}/{key}")
+            print(f"Received SNS message to scan s3://{bucket}/{key}")
             return s3_resource.Object(bucket, key)
 
         # handle SQS messages
         elif "eventSource" in event["Records"][0] and event["Records"][0]["eventSource"] == "aws:sqs":
-            print("Handling SQS message")
-
             payload = json.loads(event["Records"][0]["body"])
             bucket = payload["data"]["s3Bucket"]
             key = unquote_plus(payload["data"]["s3Key"])
 
-            print(f"Received message to scan s3://{bucket}/{key}")
+            print(f"Received SQS message to scan s3://{bucket}/{key}")
             return s3_resource.Object(bucket, key)
 
     print("Unable to retrieve object from event.\n%s" % event)
