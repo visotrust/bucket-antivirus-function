@@ -20,6 +20,8 @@ import json
 import metrics
 import os
 
+from botocore import exceptions
+
 from urllib.parse import unquote_plus
 from distutils.util import strtobool
 
@@ -49,7 +51,10 @@ def event_object(event, s3_resource=None):
     # check that the event is properly formatted
     if "Records" in event and len(event["Records"]) > 0:
         # handle sns messages
-        if "EventSource" in event["Records"][0] and event["Records"][0]["EventSource"] == "aws:sns":
+        if (
+            "EventSource" in event["Records"][0]
+            and event["Records"][0]["EventSource"] == "aws:sns"
+        ):
             payload = json.loads(event["Records"][0]["Sns"]["Message"])
             bucket = payload["Records"][0]["s3"]["bucket"]["name"]
             key = unquote_plus(payload["Records"][0]["s3"]["object"]["key"])
@@ -58,7 +63,10 @@ def event_object(event, s3_resource=None):
             return s3_resource.Object(bucket, key)
 
         # handle SQS messages
-        elif "eventSource" in event["Records"][0] and event["Records"][0]["eventSource"] == "aws:sqs":
+        elif (
+            "eventSource" in event["Records"][0]
+            and event["Records"][0]["eventSource"] == "aws:sqs"
+        ):
             payload = json.loads(event["Records"][0]["body"])
             bucket = payload["data"]["s3Bucket"]
             key = unquote_plus(payload["data"]["s3Key"])
@@ -271,6 +279,16 @@ def lambda_handler(event, context):
 
     s3_object = event_object(event, s3_resource=s3_cross_account)
 
+    # verify that s3 object exists - if not, log a warning
+    if not s3_object_exists(s3_object.bucket_name, s3_object.key):
+        print(
+            "WARNING: s3 object does not exist: bucket=%s, key=%s, elapsed=%s"
+            % s3_object.bucket_name,
+            s3_object.key,
+            get_timestamp() - start_time,
+        )
+        return
+
     if str_to_bool(AV_PROCESS_ORIGINAL_VERSION_ONLY):
         verify_s3_object_version(s3_cross_account, s3_object)
 
@@ -340,12 +358,14 @@ def lambda_handler(event, context):
         # Publish clean scan results cross account
         if (
             (
-                (scan_result == AV_STATUS_CLEAN and str_to_bool(AV_STATUS_SNS_PUBLISH_CLEAN))
-                or 
-                (scan_result == AV_STATUS_INFECTED and str_to_bool(AV_STATUS_SNS_PUBLISH_INFECTED))
+                scan_result == AV_STATUS_CLEAN
+                and str_to_bool(AV_STATUS_SNS_PUBLISH_CLEAN)
             )
-            and AV_STATUS_CLEAN_SNS_ARN not in [None, ""]
-        ):
+            or (
+                scan_result == AV_STATUS_INFECTED
+                and str_to_bool(AV_STATUS_SNS_PUBLISH_INFECTED)
+            )
+        ) and AV_STATUS_CLEAN_SNS_ARN not in [None, ""]:
             sns_scan_results(
                 sns_cross_account_client,
                 s3_object,
@@ -367,8 +387,21 @@ def lambda_handler(event, context):
             sns_delete_results(s3_object, scan_result)
             delete_s3_object(s3_object)
 
-    stop_scan_time = get_timestamp()
-    print("Script finished at %s\n" % stop_scan_time)
+    print("Script finished at %s\n" % get_timestamp())
+
+
+# test for s3 object existence - load() just does HTTP head on file so pretty cheap
+def s3_object_exists(bucket: str, key: str) -> bool:
+    try:
+        s3_resource = boto3.resource("s3")
+        s3_resource.Object(bucket, key).load()
+    except exceptions.ClientError as e:
+        if e.response["Error"]["Code"] == "404":
+            return False
+        else:
+            raise e
+    else:
+        return True
 
 
 def str_to_bool(s):
