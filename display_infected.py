@@ -87,7 +87,7 @@ def main(s3_bucket_name):
 
     # Scan the objects in the bucket
     s3_object_and_sigs_list = get_objects_and_sigs(s3_client, s3_bucket_name)
-    for (key_name, av_signature) in s3_object_and_sigs_list:
+    for key_name, av_signature in s3_object_and_sigs_list:
         print("Infected: {}/{}, {}".format(s3_bucket_name, key_name, av_signature))
 
 
