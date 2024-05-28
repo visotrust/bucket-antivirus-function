@@ -1,16 +1,16 @@
 repos:
 
   - repo: https://github.com/ambv/black
-    rev: 19.3b0
+    rev: 24.4.2
     hooks:
       - id: black
-        language_version: python3.7
+        language_version: python3.9
         exclude: >
           (?x)^(
             scripts/gen-docs-index|
           )$
 
-  - repo: git://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks.git
     rev: v2.2.3
     hooks:
       - id: check-ast
@@ -26,8 +26,8 @@ repos:
       - id: flake8
       - id: trailing-whitespace
 
-  - repo: git://github.com/igorshubovych/markdownlint-cli
-    rev: v0.17.0
+  - repo: https://github.com/igorshubovych/markdownlint-cli.git
+    rev: v0.41.0
     hooks:
       - id: markdownlint
         entry: markdownlint --ignore .github/*.md
