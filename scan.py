@@ -279,15 +279,15 @@ def lambda_handler(event, context):
 
     s3_object = event_object(event, s3_resource=s3_cross_account)
 
-    # verify that s3 object exists - if not, log a warning
-    if not s3_object_exists(s3_object.bucket_name, s3_object.key):
-        print(
-            "WARNING: s3 object does not exist: bucket=%s, key=%s, elapsed=%s"
-            % s3_object.bucket_name,
-            s3_object.key,
-            get_timestamp() - start_time,
-        )
-        return
+    # # verify that s3 object exists - if not, log a warning
+    # if not s3_object_exists(s3_object.bucket_name, s3_object.key):
+    #     print(
+    #         "WARNING: s3 object does not exist: bucket=%s, key=%s, elapsed=%s"
+    #         % s3_object.bucket_name,
+    #         s3_object.key,
+    #         get_timestamp() - start_time,
+    #     )
+    #     return
 
     if str_to_bool(AV_PROCESS_ORIGINAL_VERSION_ONLY):
         verify_s3_object_version(s3_cross_account, s3_object)
