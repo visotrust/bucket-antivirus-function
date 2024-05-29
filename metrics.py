@@ -12,11 +12,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import collections.abc
 
-import datadog
-import os
-from common import AV_STATUS_CLEAN
-from common import AV_STATUS_INFECTED
+# datadog needs the four following aliases to be done manually.
+collections.Iterable = collections.abc.Iterable
+collections.Mapping = collections.abc.Mapping
+collections.MutableSet = collections.abc.MutableSet
+collections.MutableMapping = collections.abc.MutableMapping
+import datadog  # noqa
+import os  # noqa
+from common import AV_STATUS_CLEAN  # noqa
+from common import AV_STATUS_INFECTED  # noqa
 
 
 def send(env, bucket, key, status):
