@@ -16,6 +16,7 @@
 import boto3
 import clamav
 import copy
+from mypy_boto3_s3 import S3ServiceResource
 import json
 import metrics
 import os
@@ -279,15 +280,15 @@ def lambda_handler(event, context):
 
     s3_object = event_object(event, s3_resource=s3_cross_account)
 
-    # # verify that s3 object exists - if not, log a warning
-    # if not s3_object_exists(s3_object.bucket_name, s3_object.key):
-    #     print(
-    #         "WARNING: s3 object does not exist: bucket=%s, key=%s, elapsed=%s"
-    #         % s3_object.bucket_name,
-    #         s3_object.key,
-    #         get_timestamp() - start_time,
-    #     )
-    #     return
+    # verify that s3 object exists - if not, log a warning
+    if not s3_object_exists(s3_cross_account, s3_object.bucket_name, s3_object.key):
+        print(
+            "WARNING: s3 object does not exist: bucket=%s, key=%s, elapsed=%s"
+            % s3_object.bucket_name,
+            s3_object.key,
+            get_timestamp() - start_time,
+        )
+        return
 
     if str_to_bool(AV_PROCESS_ORIGINAL_VERSION_ONLY):
         verify_s3_object_version(s3_cross_account, s3_object)
@@ -391,9 +392,8 @@ def lambda_handler(event, context):
 
 
 # test for s3 object existence - load() just does HTTP head on file so pretty cheap
-def s3_object_exists(bucket: str, key: str) -> bool:
+def s3_object_exists(s3_resource: S3ServiceResource, bucket: str, key: str) -> bool:
     try:
-        s3_resource = boto3.resource("s3")
         s3_resource.Object(bucket, key).load()
     except exceptions.ClientError as e:
         if e.response["Error"]["Code"] == "404":

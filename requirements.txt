@@ -4,6 +4,7 @@ chardet==5.2.0
 datadog==0.49.1
 decorator==5.1.1
 idna==3.7
+mypy-boto3-s3==1.34.0
 pytz==2024.1
 requests==2.31.0
 simplejson==3.19.2
