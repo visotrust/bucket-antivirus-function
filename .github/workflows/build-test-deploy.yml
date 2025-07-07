@@ -19,8 +19,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python: ["3.7"]
-        os: ["ubuntu-20.04"]
+        python: ["3.10"]
+        os: ["ubuntu-24.04"]
     steps:
       - name: checkout
         uses: actions/checkout/@v2

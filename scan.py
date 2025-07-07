@@ -284,9 +284,7 @@ def lambda_handler(event, context):
     if not s3_object_exists(s3_cross_account, s3_object.bucket_name, s3_object.key):
         print(
             "WARNING: s3 object does not exist: bucket=%s, key=%s, elapsed=%s"
-            % s3_object.bucket_name,
-            s3_object.key,
-            get_timestamp() - start_time,
+            % (s3_object.bucket_name, s3_object.key, get_timestamp() - start_time)
         )
         return
 
