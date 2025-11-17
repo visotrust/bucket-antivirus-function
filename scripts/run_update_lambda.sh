@@ -26,4 +26,4 @@ docker run --rm \
   --memory-swap="${MEM}" \
   --cpus="${CPUS}" \
   --name="${NAME}" \
-  lambci/lambda:python3.7 update.lambda_handler
+  lambci/lambda:python3.9 update.lambda_handler
